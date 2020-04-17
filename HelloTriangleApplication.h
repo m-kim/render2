@@ -1,10 +1,18 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <optional>
 
 
 #include <iostream>
 #include <vector>
+struct QueueFamilyIndices {
+  std::optional<uint32_t> graphicsFamily;
+
+  bool isComplete() {
+    return graphicsFamily.has_value();
+  }
+};
 
 class HelloTriangleApplication final {
 public:
@@ -39,6 +47,10 @@ private:
 
   void initWindow();
   void initVulkan();
+  void pickPhysicalDevice();
+  bool isDeviceSuitable(VkPhysicalDevice device);
+
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
   void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) const;
 
