@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
+
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
   std::optional<uint32_t> presentFamily;
@@ -46,6 +48,8 @@ private:
   std::vector<VkImage> swapChainImages;
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
+  std::vector<VkImageView> swapChainImageViews;
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -71,6 +75,7 @@ private:
   void createLogicalDevice();
   void createSurface();
 
+  void createImageViews();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
@@ -86,5 +91,27 @@ private:
   void mainLoop();
 
   void cleanup();
+  void createGraphicsPipeline();
+  VkShaderModule createShaderModule(const std::vector<char>& code);
+
+  static std::vector<char> readFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) {
+      std::string output("failed to open file: ");
+      output = output + filename;
+      throw std::runtime_error(output);
+    }
+
+    size_t fileSize = (size_t)file.tellg();
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+
+    file.close();
+
+    return buffer;
+  }
 };
 
