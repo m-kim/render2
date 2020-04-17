@@ -49,7 +49,10 @@ private:
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
+
+  VkRenderPass renderPass;
   VkPipelineLayout pipelineLayout;
+  VkPipeline graphicsPipeline;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -93,6 +96,8 @@ private:
 
   void cleanup();
   void createGraphicsPipeline();
+  void createRenderPass();
+
   VkShaderModule createShaderModule(const std::vector<char>& code);
 
   static std::vector<char> readFile(const std::string& filename) {
