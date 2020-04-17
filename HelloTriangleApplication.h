@@ -15,6 +15,11 @@ struct QueueFamilyIndices {
     return graphicsFamily.has_value() && presentFamily.has_value();
   }
 };
+struct SwapChainSupportDetails {
+  VkSurfaceCapabilitiesKHR capabilities;
+  std::vector<VkSurfaceFormatKHR> formats;
+  std::vector<VkPresentModeKHR> presentModes;
+};
 
 class HelloTriangleApplication final {
 public:
@@ -37,7 +42,10 @@ private:
   VkQueue presentQueue;
 
   VkSurfaceKHR surface;
-
+  VkSwapchainKHR swapChain;
+  std::vector<VkImage> swapChainImages;
+  VkFormat swapChainImageFormat;
+  VkExtent2D swapChainExtent;
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -63,7 +71,13 @@ private:
   void createLogicalDevice();
   void createSurface();
 
+  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+  VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+  void createSwapChain();
 
   void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) const;
 
