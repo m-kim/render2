@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <array>
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -22,6 +23,8 @@ struct SwapChainSupportDetails {
   std::vector<VkSurfaceFormatKHR> formats;
   std::vector<VkPresentModeKHR> presentModes;
 };
+
+
 
 class HelloTriangleApplication final {
 public:
@@ -67,6 +70,9 @@ private:
   std::vector<VkFence> imagesInFlight;
   size_t currentFrame = 0;
 
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -108,12 +114,18 @@ private:
   void mainLoop();
 
   void cleanup();
+  void cleanupSwapChain();
+
+
   void createGraphicsPipeline();
   void createRenderPass();
   void createFramebuffers();
   void createCommandPool();
   void createCommandBuffers();
   void createSyncObjects();
+  void createVertexBuffer();
+    
+  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
   void drawFrame();
   VkShaderModule createShaderModule(const std::vector<char>& code);
