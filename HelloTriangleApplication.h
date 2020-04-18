@@ -54,6 +54,13 @@ private:
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
 
+  std::vector<VkFramebuffer> swapChainFramebuffers;
+
+  VkCommandPool commandPool;
+  std::vector<VkCommandBuffer> commandBuffers;
+  VkSemaphore imageAvailableSemaphore;
+  VkSemaphore renderFinishedSemaphore;
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -97,7 +104,12 @@ private:
   void cleanup();
   void createGraphicsPipeline();
   void createRenderPass();
+  void createFramebuffers();
+  void createCommandPool();
+  void createCommandBuffers();
+  void createSemaphores();
 
+  void drawFrame();
   VkShaderModule createShaderModule(const std::vector<char>& code);
 
   static std::vector<char> readFile(const std::string& filename) {
