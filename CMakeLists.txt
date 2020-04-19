@@ -8,8 +8,9 @@ find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-
 SET(${CMAKE_PROJECT_NAME}_SHADERS_DIR ${CMAKE_SOURCE_DIR})
+SET(${CMAKE_PROJECT_NAME}_TEXTURE_DIR ${CMAKE_SOURCE_DIR}/textures)
+
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/common/config.h.in"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.h" )
 

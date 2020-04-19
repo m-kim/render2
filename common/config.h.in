@@ -1,3 +1,4 @@
 #pragma once
 
 #define SHADER_PATH "@render2_SHADERS_DIR@/"
+#define TEXTURE_PATH "@render2_TEXTURE_DIR@/"

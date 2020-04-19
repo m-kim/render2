@@ -84,6 +84,11 @@ private:
   VkDescriptorPool descriptorPool;
 
   std::vector<VkDescriptorSet> descriptorSets;
+  VkImage textureImage;
+  VkDeviceMemory textureImageMemory;
+  VkImageView textureImageView;
+
+  VkSampler textureSampler;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -138,7 +143,8 @@ private:
   void createVertexBuffer();
   void createIndexBuffer();
   void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-  
+  VkCommandBuffer beginSingleTimeCommands();
+  void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
   void createDescriptorSetLayout();
@@ -148,6 +154,15 @@ private:
   void createUniformBuffers();
 
   void updateUniformBuffer(uint32_t currentImage);
+
+  void createTextureImage();
+  void createTextureImageView();
+  VkImageView createImageView(VkImage image, VkFormat format);
+  void createTextureSampler();
+
+  void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+  void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+  void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
