@@ -30,5 +30,5 @@ set(render2_src
 main.cpp HelloTriangleApplication.cpp)
 set(render2_hdr 
 HelloTriangleApplication.h)
-add_executable(render2 ${render2_src} ${render2_hdr} vert.spv frag.spv)
+add_executable(render2 ${render2_src} ${render2_hdr} shader.vert shader.frag)
 target_link_libraries(render2 Vulkan::Vulkan glfw glm::glm)
