@@ -54,6 +54,8 @@ private:
   std::vector<VkImageView> swapChainImageViews;
 
   VkRenderPass renderPass;
+  VkDescriptorSetLayout descriptorSetLayout;
+
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
 
@@ -75,6 +77,13 @@ private:
 
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+
+  VkDescriptorPool descriptorPool;
+
+  std::vector<VkDescriptorSet> descriptorSets;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -118,7 +127,7 @@ private:
 
   void cleanup();
   void cleanupSwapChain();
-
+  void recreateSwapChain();
 
   void createGraphicsPipeline();
   void createRenderPass();
@@ -129,8 +138,16 @@ private:
   void createVertexBuffer();
   void createIndexBuffer();
   void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-
+  
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+  void createDescriptorSetLayout();
+  void createDescriptorPool();
+  void createDescriptorSets();
+
+  void createUniformBuffers();
+
+  void updateUniformBuffer(uint32_t currentImage);
 
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
