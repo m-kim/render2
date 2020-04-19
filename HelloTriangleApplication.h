@@ -90,6 +90,9 @@ private:
 
   VkSampler textureSampler;
 
+  VkImage depthImage;
+  VkDeviceMemory depthImageMemory;
+  VkImageView depthImageView;
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -157,8 +160,13 @@ private:
 
   void createTextureImage();
   void createTextureImageView();
-  VkImageView createImageView(VkImage image, VkFormat format);
+  VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
   void createTextureSampler();
+
+  void createDepthResources();
+  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+  VkFormat findDepthFormat();
+  bool hasStencilComponent(VkFormat format);
 
   void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
   void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
