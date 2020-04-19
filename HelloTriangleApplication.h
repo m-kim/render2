@@ -73,6 +73,9 @@ private:
   VkBuffer vertexBuffer;
   VkDeviceMemory vertexBufferMemory;
 
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -124,6 +127,7 @@ private:
   void createCommandBuffers();
   void createSyncObjects();
   void createVertexBuffer();
+  void createIndexBuffer();
   void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
