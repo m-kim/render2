@@ -11,6 +11,10 @@
 
 #include "Square.h"
 #include "Chalet.h"
+#include "VertexBufferCreator.h"
+#include "UniformBufferCreator.h"
+#include "IndexBufferCreator.h"
+#include "TextureBufferCreator.h"
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -93,7 +97,10 @@ private:
   VkImageView depthImageView;
 
   ModelBase<Chalet, uint32_t> model;
-  
+  BufferCreatorBase<VertexBufferCreator> vtxBuffer;
+  BufferCreatorBase<UniformBufferCreator> uniformBuffer;
+  BufferCreatorBase<IndexBufferCreator> idxBuffer;
+  BufferCreatorBase<TextureBufferCreator> texBufferCreator;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

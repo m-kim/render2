@@ -27,6 +27,13 @@ endfunction()
 
 add_spirv_shader(vertex shader.vert vert.spv)
 add_spirv_shader(fragment shader.frag frag.spv)
+
+set(buffercreator_hdrs 
+BufferCreatorBase.h
+IndexBufferCreator.h
+UniformBufferCreator.h
+VertexBufferCreator.h
+)
 set(tinyobj_src tinyobjloader/tiny_obj_loader.cc)
 set(tinyobj_hdr tinyobjloader/tiny_obj_loader.h)
 set(render2_src
@@ -37,5 +44,5 @@ Vertex.h
 ModelBase.h
 Square.h
 Chalet.h )
-add_executable(render2 ${render2_src} ${render2_hdr} ${tinyobj_src} ${tinyobj_hdr} shader.vert shader.frag)
+add_executable(render2 ${render2_src} ${render2_hdr} ${tinyobj_src} ${tinyobj_hdr} ${buffercreator_hdrs} shader.vert shader.frag)
 target_link_libraries(render2 Vulkan::Vulkan glfw glm::glm)

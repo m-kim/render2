@@ -162,6 +162,10 @@ void HelloTriangleApplication::initVulkan() {
   createDepthResources();
   createFramebuffers();
   createCommandPool();
+  vtxBuffer = BufferCreatorBase<VertexBufferCreator>(commandPool, device, physicalDevice, graphicsQueue);
+  uniformBuffer = BufferCreatorBase<UniformBufferCreator>(commandPool, device, physicalDevice, graphicsQueue);
+  idxBuffer = BufferCreatorBase<IndexBufferCreator>(commandPool, device, physicalDevice, graphicsQueue);
+  texBufferCreator = BufferCreatorBase<TextureBufferCreator>(commandPool, device, physicalDevice, graphicsQueue);
   createTextureImage();
   createTextureImageView();
   createTextureSampler();
@@ -180,22 +184,9 @@ void HelloTriangleApplication::createIndexBuffer()
   auto indices = model.getIndices();
   VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, indices.data(), (size_t)bufferSize);
-  vkUnmapMemory(device, stagingBufferMemory);
-
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.indexBuffer, model.indexBufferMemory);
-
-  copyBuffer(stagingBuffer, model.indexBuffer, bufferSize);
-
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  idxBuffer.create(bufferSize, indices, model.indexBuffer, model.indexBufferMemory);
 }
+
 void HelloTriangleApplication::createRenderPass()
 {
   VkAttachmentDescription colorAttachment = {};
@@ -1007,25 +998,7 @@ void HelloTriangleApplication::createVertexBuffer()
   const auto vertices = model.getVertices();
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-
-
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), (size_t)bufferSize);
-  vkUnmapMemory(device, stagingBufferMemory);
-
-  //VK_BUFFER_USAGE_TRANSFER_SRC_BIT: Buffer can be used as source in a memory transfer operation.
-  //VK_BUFFER_USAGE_TRANSFER_DST_BIT: Buffer can be used as destination in a memory transfer operation.
-  createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, model.vertexBuffer, model.vertexBufferMemory);
-
-
-  copyBuffer(stagingBuffer, model.vertexBuffer, bufferSize);
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  vtxBuffer.create(bufferSize, vertices, model.vertexBuffer, model.vertexBufferMemory);
 }
 
 void HelloTriangleApplication::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) 
@@ -1110,7 +1083,7 @@ void HelloTriangleApplication::createUniformBuffers()
   uniformBuffersMemory.resize(swapChainImages.size());
 
   for (size_t i = 0; i < swapChainImages.size(); i++) {
-    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+    uniformBuffer.create(bufferSize, uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
 
@@ -1214,24 +1187,9 @@ void HelloTriangleApplication::createTextureImage()
     throw std::runtime_error("failed to load texture image!");
   }
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-
-
-  createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, pixels, (size_t)imageSize);
-  vkUnmapMemory(device, stagingBufferMemory);
-  createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-
-  transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-  transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  std::vector<stbi_uc> vPixels(pixels, pixels + imageSize);
+  auto texInfo = std::make_tuple(texWidth, texHeight, imageSize);
+  texBufferCreator.create(texInfo, vPixels, textureImage, textureImageMemory);
 }
 void HelloTriangleApplication::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) 
 {
