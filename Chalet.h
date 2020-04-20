@@ -11,8 +11,6 @@ class Chalet : public ModelBase<Chalet, uint32_t>
 public:
   Chalet() = default;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
 
   VkIndexType getIndexType() { return VK_INDEX_TYPE_UINT32; };
 
