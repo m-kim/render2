@@ -9,6 +9,9 @@
 #include <fstream>
 #include <array>
 
+#include "Square.h"
+#include "Chalet.h"
+
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
   std::optional<uint32_t> presentFamily;
@@ -72,12 +75,7 @@ private:
   std::vector<VkFence> imagesInFlight;
   size_t currentFrame = 0;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
-
+  
   std::vector<VkBuffer> uniformBuffers;
   std::vector<VkDeviceMemory> uniformBuffersMemory;
 
@@ -93,6 +91,10 @@ private:
   VkImage depthImage;
   VkDeviceMemory depthImageMemory;
   VkImageView depthImageView;
+
+  ModelBase<Chalet, uint32_t> model;
+  
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -173,6 +175,8 @@ private:
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+  void loadModel();
 
   void drawFrame();
   VkShaderModule createShaderModule(const std::vector<char>& code);

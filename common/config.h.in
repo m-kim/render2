@@ -2,3 +2,4 @@
 
 #define SHADER_PATH "@render2_SHADERS_DIR@/"
 #define TEXTURE_PATH "@render2_TEXTURE_DIR@/"
+#define MODEL_PATH "@render2_MODEL_DIR@/"
