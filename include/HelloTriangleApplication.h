@@ -9,12 +9,12 @@
 #include <fstream>
 #include <array>
 
-#include "Square.h"
-#include "Chalet.h"
-#include "VertexBufferCreator.h"
-#include "UniformBufferCreator.h"
-#include "IndexBufferCreator.h"
-#include "TextureBufferCreator.h"
+#include <Square.h>
+#include <VikingRoom.h>
+#include <VertexBufferCreator.h>
+#include <UniformBufferCreator.h>
+#include <IndexBufferCreator.h>
+#include <TextureBufferCreator.h>
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -96,7 +96,7 @@ private:
   VkDeviceMemory depthImageMemory;
   VkImageView depthImageView;
 
-  ModelBase<Chalet, uint32_t> model;
+  ModelBase<VikingRoom, uint32_t> model;
   BufferCreatorBase<VertexBufferCreator> vtxBuffer;
   BufferCreatorBase<UniformBufferCreator> uniformBuffer;
   BufferCreatorBase<IndexBufferCreator> idxBuffer;

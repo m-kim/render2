@@ -1,15 +1,16 @@
 #pragma once
 #include <unordered_map>
 
+#include "ModelBase.h" 
 #include "Vertex.h"
 
-#include "tinyobjloader/tiny_obj_loader.h"
-#include "config.h"
+#include <tinyobjloader/tiny_obj_loader.h>
+#include <config.h>
 
-class Chalet : public ModelBase<Chalet, uint32_t>
+class VikingRoom : public ModelBase<VikingRoom, uint32_t>
 {
 public:
-  Chalet() = default;
+  VikingRoom() = default;
 
 
   VkIndexType getIndexType() { return VK_INDEX_TYPE_UINT32; };
@@ -20,7 +21,7 @@ public:
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
     std::string modelFn(MODEL_PATH);
-    modelFn = modelFn + "chalet.obj";
+    modelFn = modelFn + "viking_room.obj";
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelFn.c_str())) {
       throw std::runtime_error(warn + err);
     }

@@ -9,8 +9,8 @@ find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 SET(${CMAKE_PROJECT_NAME}_SHADERS_DIR ${CMAKE_SOURCE_DIR})
-SET(${CMAKE_PROJECT_NAME}_TEXTURE_DIR ${CMAKE_SOURCE_DIR}/textures)
-SET(${CMAKE_PROJECT_NAME}_MODEL_DIR ${CMAKE_SOURCE_DIR}/textures)
+SET(${CMAKE_PROJECT_NAME}_TEXTURE_DIR ${CMAKE_SOURCE_DIR}/models)
+SET(${CMAKE_PROJECT_NAME}_MODEL_DIR ${CMAKE_SOURCE_DIR}/models)
 
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/common/config.h.in"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.h" )
@@ -28,21 +28,5 @@ endfunction()
 add_spirv_shader(vertex shader.vert vert.spv)
 add_spirv_shader(fragment shader.frag frag.spv)
 
-set(buffercreator_hdrs 
-BufferCreatorBase.h
-IndexBufferCreator.h
-UniformBufferCreator.h
-VertexBufferCreator.h
-)
-set(tinyobj_src tinyobjloader/tiny_obj_loader.cc)
-set(tinyobj_hdr tinyobjloader/tiny_obj_loader.h)
-set(render2_src
-main.cpp HelloTriangleApplication.cpp)
-set(render2_hdr 
-HelloTriangleApplication.h
-Vertex.h
-ModelBase.h
-Square.h
-Chalet.h )
-add_executable(render2 ${render2_src} ${render2_hdr} ${tinyobj_src} ${tinyobj_hdr} ${buffercreator_hdrs} shader.vert shader.frag)
-target_link_libraries(render2 Vulkan::Vulkan glfw glm::glm)
+add_subdirectory(src)
+add_subdirectory(app)
