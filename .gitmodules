@@ -7,3 +7,6 @@
 [submodule "tinyobjloader"]
 	path = tinyobjloader
 	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "nv_shared_sources"]
+	path = nv_shared_sources
+	url = https://github.com/nvpro-samples/shared_sources.git
