@@ -1,6 +1,8 @@
 #include <Context.h>
 #include <stdexcept>
 #include <set>
+#include <vulkan/vulkan.hpp>
+#include <nvvk/extensions_vk.hpp>
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -180,6 +182,8 @@ void Context::createLogicalDevice(VkSurfaceKHR &surface)
 
   vkGetDeviceQueue(m_device, m_indices.graphicsFamily.value(), 0, &m_graphicsQueue);
   vkGetDeviceQueue(m_device, m_indices.presentFamily.value(), 0, &m_presentQueue);
+
+  load_VK_EXTENSION_SUBSET(m_instance, vkGetInstanceProcAddr, m_device, vkGetDeviceProcAddr);
 
 }
 void Context::pickPhysicalDevice(VkSurfaceKHR &surface)

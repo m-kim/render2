@@ -1,7 +1,16 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.hpp>
 #include <optional>
+#define NVVK_ALLOC_DEDICATED
+#include <nvvk/extensions_vk.hpp>
+#include <nvvk/allocator_vk.hpp>
+#include <nvvk/debug_util_vk.hpp>
+#include <nvvk/descriptorsets_vk.hpp>
+
+// #VKRay
+#include <nvvk/raytraceKHR_vk.hpp>
 
 
 #include <iostream>
@@ -22,12 +31,26 @@
 class HelloTriangleApplication final {
 public:
   void setup(VkInstance &_instance, VkDevice &_device, VkPhysicalDevice & _physicalDevice, VkQueue &_graphicsQ, VkQueue &_presentQ) {
+    // Initialize function pointers
+    vk::DynamicLoader         dl;
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr =
+      dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(_instance);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(_device);
+
     m_instance = _instance;
     m_device = _device;
     m_physicalDevice = _physicalDevice;
     m_graphicsQueue = _graphicsQ;
     m_presentQueue = _presentQ;
+
+
+    //m_queue = m_device.getQueue(m_graphicsQueueIndex, 0);
+    //m_cmdPool = m_device.createCommandPool({ vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsQueueIndex });
+    //m_pipelineCache = device.createPipelineCache(vk::PipelineCacheCreateInfo());
   }
+
   void run()
   {
     initVulkan();
@@ -59,7 +82,7 @@ private:
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-  VkDevice m_device;
+  vk::Device m_device;
 
 
   VkSwapchainKHR swapChain;
