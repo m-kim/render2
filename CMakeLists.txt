@@ -8,6 +8,34 @@ find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 
+# Need this to override the include path to Vulkan-Headers
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+    set( USING_VULKANSDK "YES" PARENT_SCOPE) # PARENT_SCOPE important to have this variable passed to parent. Here we want to notify that something used the Vulkan package
+else()
+    set( USING_VULKANSDK "YES")
+endif()
+
+add_definitions(-DUSEVULKANSDK)
+add_definitions(-DGLFW_INCLUDE_VULKAN)
+add_definitions(-DVK_ENABLE_BETA_EXTENSIONS)
+
+set(VULKAN_HEADERS_OVERRIDE_INCLUDE_DIR CACHE PATH "Override for Vulkan headers, leave empty to use SDK")
+if (VULKAN_HEADERS_OVERRIDE_INCLUDE_DIR)
+set(vulkanHeaderDir ${VULKAN_HEADERS_OVERRIDE_INCLUDE_DIR})
+else()
+set(vulkanHeaderDir ${VULKANSDK_INCLUDE_DIR})
+endif()
+
+include_directories(${vulkanHeaderDir})
+file(GLOB vulkanHeaderFiles "${vulkanHeaderDir}/vulkan/vulkan.h")
+LIST(APPEND PACKAGE_SOURCE_FILES ${vulkanHeaderFiles} )
+source_group(Vulkan FILES  ${vulkanHeaderFiles} )
+LIST(APPEND LIBRARIES_OPTIMIZED ${VULKAN_LIB} )
+LIST(APPEND LIBRARIES_DEBUG ${VULKAN_LIB} )
+set(VULKAN_HEADERS "<vulkan/vulkan_core.h>")
+# Needed to override the include path to VULKAN_HEADERS
+
 SET(${CMAKE_PROJECT_NAME}_SHADERS_DIR ${CMAKE_SOURCE_DIR})
 SET(${CMAKE_PROJECT_NAME}_TEXTURE_DIR ${CMAKE_SOURCE_DIR}/models)
 SET(${CMAKE_PROJECT_NAME}_MODEL_DIR ${CMAKE_SOURCE_DIR}/models)
