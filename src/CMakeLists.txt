@@ -1,5 +1,6 @@
 set(SOURCE_LIST
     ../tinyobjloader/tiny_obj_loader.cc
+    Context.cpp
     HelloTriangleApplication.cpp
         )
 set(HEADER_LIST

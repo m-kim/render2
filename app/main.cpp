@@ -1,5 +1,5 @@
 #include <HelloTriangleApplication.h>
-
+#include <Context.h>
 
 
 int main() {
@@ -16,11 +16,15 @@ int main() {
   for (const auto& extension : extensions) {
     std::cout << "\t" << extension.extensionName << std::endl;
   }
-
   HelloTriangleApplication app;
+  app.initWindow();
+
+  Context ctx;
+  ctx.createInstance();
+
 
   try {
-    app.run();
+    app.run(ctx.m_instance);
   }
   catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

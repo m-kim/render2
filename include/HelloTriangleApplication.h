@@ -35,12 +35,13 @@ struct SwapChainSupportDetails {
 
 class HelloTriangleApplication final {
 public:
-  void run() {
-    initWindow();
+  void run(VkInstance &_instance) {
+    instance = _instance;
     initVulkan();
     mainLoop();
     cleanup();
   }
+  void initWindow();
 
 private:
   GLFWwindow* window;
@@ -119,7 +120,6 @@ private:
 
   void createInstance();
 
-  void initWindow();
   void initVulkan();
   void pickPhysicalDevice();
   bool isDeviceSuitable(VkPhysicalDevice device);

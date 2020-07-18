@@ -146,7 +146,7 @@ void HelloTriangleApplication::initWindow() {
   window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 void HelloTriangleApplication::initVulkan() {
-  createInstance();
+  //createInstance();
   setupDebugMessenger();
   createSurface();
 
