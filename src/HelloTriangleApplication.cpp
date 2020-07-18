@@ -1178,10 +1178,10 @@ void HelloTriangleApplication::createDescriptorSets()
 void HelloTriangleApplication::createTextureImage()
 {
   int texWidth, texHeight, texChannels;
-  std::string textureFN(TEXTURE_PATH);
-  textureFN = textureFN + "viking_room.png";
+  std::string fn(MODEL_PATH);
+  fn += model.textureName();
 
-  stbi_uc* pixels = stbi_load(textureFN.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+  stbi_uc* pixels = stbi_load(fn.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
   VkDeviceSize imageSize = texWidth * texHeight * 4;
   if (!pixels) {
     throw std::runtime_error("failed to load texture image!");

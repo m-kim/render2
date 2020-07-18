@@ -12,6 +12,9 @@ class VikingRoom : public ModelBase<VikingRoom, uint32_t>
 public:
   VikingRoom() = default;
 
+  constexpr std::string_view textureName() {
+    return std::string_view("viking_room.png");
+  }
 
   VkIndexType getIndexType() { return VK_INDEX_TYPE_UINT32; };
 

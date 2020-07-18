@@ -14,6 +14,10 @@ public:
 
   VkIndexType getIndexType() { return VK_INDEX_TYPE_UINT32; };
 
+  constexpr std::string_view textureName() {
+    return std::string_view("chalet.jpg");
+  }
+
   void loadModel() {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
