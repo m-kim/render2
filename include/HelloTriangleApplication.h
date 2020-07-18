@@ -32,7 +32,6 @@ public:
   {
     initVulkan();
     mainLoop();
-    cleanup();
   }
   void initWindow();
   VkSurfaceKHR createSurface(VkInstance &);
@@ -51,8 +50,11 @@ public:
   void createDescriptorSetLayout();
   void createDepthResources();
 
-private:
+  void cleanup();
+
   GLFWwindow* window;
+  VkSurfaceKHR m_surface;
+private:
   VkInstance m_instance;
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
@@ -60,7 +62,6 @@ private:
   VkDevice m_device;
 
 
-  VkSurfaceKHR m_surface;
   VkSwapchainKHR swapChain;
   std::vector<VkImage> swapChainImages;
   VkFormat swapChainImageFormat;
@@ -138,7 +139,6 @@ private:
 
   void mainLoop();
 
-  void cleanup();
   void cleanupSwapChain();
   void recreateSwapChain();
 

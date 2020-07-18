@@ -37,12 +37,6 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-  if (func != nullptr) {
-    func(instance, debugMessenger, pAllocator);
-  }
-}
 
 
 
@@ -259,20 +253,6 @@ void HelloTriangleApplication::cleanup() {
   }
 
   vkDestroyCommandPool(m_device, commandPool, nullptr);
-
-  vkDestroyDevice(m_device, nullptr);
-
-
-  if (enableValidationLayers) {
-    DestroyDebugUtilsMessengerEXT(m_instance, debugMessenger, nullptr);
-  }
-
-  vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-  vkDestroyInstance(m_instance, nullptr);
-  glfwDestroyWindow(window);
-
-  glfwTerminate();
-
 }
 
 //resize perhaps...

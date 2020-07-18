@@ -45,6 +45,16 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  app.cleanup();
+
+  vkDestroySurfaceKHR(ctx.m_instance, app.m_surface, nullptr);
+  vkDestroyInstance(ctx.m_instance, nullptr);
+  glfwDestroyWindow(app.window);
+
+  glfwTerminate();
+
+
+
 
   return EXIT_SUCCESS;
 }

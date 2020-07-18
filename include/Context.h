@@ -41,6 +41,8 @@ public:
 
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
+  void cleanup();
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,

@@ -21,6 +21,13 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
   }
 }
 
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+  if (func != nullptr) {
+    func(instance, debugMessenger, pAllocator);
+  }
+}
+
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
@@ -270,4 +277,13 @@ SwapChainSupportDetails Context::querySwapChainSupport(VkPhysicalDevice device, 
 
 bool Context::checkDeviceExtensionSupport(VkPhysicalDevice device) {
   return true;
+}
+void Context::cleanup()
+{
+  vkDestroyDevice(m_device, nullptr);
+
+
+  if (enableValidationLayers) {
+    DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+  }
 }
