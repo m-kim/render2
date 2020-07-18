@@ -16,45 +16,51 @@
 #include <IndexBufferCreator.h>
 #include <TextureBufferCreator.h>
 
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
-
-
-  bool isComplete() {
-    return graphicsFamily.has_value() && presentFamily.has_value();
-  }
-};
-struct SwapChainSupportDetails {
-  VkSurfaceCapabilitiesKHR capabilities;
-  std::vector<VkSurfaceFormatKHR> formats;
-  std::vector<VkPresentModeKHR> presentModes;
-};
-
+#include "Context.h"
 
 
 class HelloTriangleApplication final {
 public:
-  void run(VkInstance &_instance) {
-    instance = _instance;
+  void setup(VkInstance &_instance, VkDevice &_device, VkPhysicalDevice & _physicalDevice, VkQueue &_graphicsQ, VkQueue &_presentQ) {
+    m_instance = _instance;
+    m_device = _device;
+    m_physicalDevice = _physicalDevice;
+    m_graphicsQueue = _graphicsQ;
+    m_presentQueue = _presentQ;
+  }
+  void run()
+  {
     initVulkan();
     mainLoop();
     cleanup();
   }
   void initWindow();
+  VkSurfaceKHR createSurface(VkInstance &);
+  void createSwapChain(SwapChainSupportDetails&, QueueFamilyIndices &);
+
+  void createGraphicsPipeline();
+  void createRenderPass();
+  void createFramebuffers();
+  void createCommandPool(QueueFamilyIndices&);
+  void createCommandBuffers();
+  void createSyncObjects();
+  void createVertexBuffer();
+  void createIndexBuffer();
+  void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+  void createImageViews();
+  void createDescriptorSetLayout();
+  void createDepthResources();
 
 private:
   GLFWwindow* window;
-  VkInstance instance;
+  VkInstance m_instance;
   VkDebugUtilsMessengerEXT debugMessenger;
-  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-  VkDevice device;
+  VkDevice m_device;
 
-  VkQueue graphicsQueue;
-  VkQueue presentQueue;
 
-  VkSurfaceKHR surface;
+  VkSurfaceKHR m_surface;
   VkSwapchainKHR swapChain;
   std::vector<VkImage> swapChainImages;
   VkFormat swapChainImageFormat;
@@ -103,6 +109,9 @@ private:
   BufferCreatorBase<IndexBufferCreator> idxBuffer;
   BufferCreatorBase<TextureBufferCreator> texBufferCreator;
 
+  VkQueue m_presentQueue;
+  VkQueue m_graphicsQueue;
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -118,27 +127,14 @@ private:
 
   std::vector<const char*> getRequiredExtensions();
 
-  void createInstance();
-
   void initVulkan();
-  void pickPhysicalDevice();
-  bool isDeviceSuitable(VkPhysicalDevice device);
+  
 
-  void createLogicalDevice();
-  void createSurface();
-
-  void createImageViews();
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
   VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-  void createSwapChain();
 
   void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) const;
-
-  void setupDebugMessenger();
 
   void mainLoop();
 
@@ -146,20 +142,10 @@ private:
   void cleanupSwapChain();
   void recreateSwapChain();
 
-  void createGraphicsPipeline();
-  void createRenderPass();
-  void createFramebuffers();
-  void createCommandPool();
-  void createCommandBuffers();
-  void createSyncObjects();
-  void createVertexBuffer();
-  void createIndexBuffer();
-  void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-  void createDescriptorSetLayout();
   void createDescriptorPool();
   void createDescriptorSets();
 
@@ -172,7 +158,6 @@ private:
   VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
   void createTextureSampler();
 
-  void createDepthResources();
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);
