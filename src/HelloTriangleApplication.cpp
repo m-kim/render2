@@ -15,6 +15,7 @@
 #include <Vertex.h>
 #include <config.h>
 
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -94,17 +95,6 @@ void HelloTriangleApplication::initVulkan() {
   uniformBuffer = BufferCreatorBase<UniformBufferCreator>(commandPool, m_device, m_physicalDevice, m_graphicsQueue);
   idxBuffer = BufferCreatorBase<IndexBufferCreator>(commandPool, m_device, m_physicalDevice, m_graphicsQueue);
   texBufferCreator = BufferCreatorBase<TextureBufferCreator>(commandPool, m_device, m_physicalDevice, m_graphicsQueue);
-  createTextureImage();
-  createTextureImageView();
-  createTextureSampler();
-  loadModel();
-  createVertexBuffer();
-  createIndexBuffer();
-  createUniformBuffers();
-  createDescriptorPool();
-  createDescriptorSets();
-  createCommandBuffers();
-  createSyncObjects();
 }
 
 void HelloTriangleApplication::createIndexBuffer()
@@ -1176,4 +1166,195 @@ bool HelloTriangleApplication::hasStencilComponent(VkFormat format) {
 void HelloTriangleApplication::loadModel()
 {
   model.loadModel();
+}
+
+void HelloTriangleApplication::createRayTracing(int graphicsQueueIdx)
+{
+  // Requesting ray tracing properties
+  auto properties = m_physicalDevice.getProperties2<vk::PhysicalDeviceProperties2,
+    vk::PhysicalDeviceRayTracingPropertiesKHR>();
+  m_rtProperties = properties.get<vk::PhysicalDeviceRayTracingPropertiesKHR>();
+
+  m_rtBuilder.setup(m_device, &m_alloc, graphicsQueueIdx);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Converting a OBJ primitive to the ray tracing geometry used for the BLAS
+//
+nvvk::RaytracingBuilderKHR::Blas HelloTriangleApplication::objectToVkGeometryKHR()
+{
+  // Setting up the creation info of acceleration structure
+  vk::AccelerationStructureCreateGeometryTypeInfoKHR asCreate;
+  asCreate.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+  asCreate.setIndexType(vk::IndexType::eUint32);
+  asCreate.setVertexFormat(vk::Format::eR32G32B32Sfloat);
+  asCreate.setMaxPrimitiveCount(model.indices.size() / 3);  // Nb triangles
+  asCreate.setMaxVertexCount(model.vertices.size());
+  asCreate.setAllowsTransforms(VK_FALSE);  // No adding transformation matrices
+
+  // Building part
+  // https://github.com/KhronosGroup/Vulkan-Hpp/pull/553
+  vk::DeviceAddress vertexAddress = m_device.getBufferAddressKHR({ model.vertexBuffer });
+  vk::DeviceAddress indexAddress = m_device.getBufferAddressKHR({ model.indexBuffer });
+
+  vk::AccelerationStructureGeometryTrianglesDataKHR triangles;
+  triangles.setVertexFormat(asCreate.vertexFormat);
+  triangles.setVertexData(vertexAddress);
+  triangles.setVertexStride(sizeof(VertexObj));
+  triangles.setIndexType(asCreate.indexType);
+  triangles.setIndexData(indexAddress);
+  triangles.setTransformData({});
+
+  // Setting up the build info of the acceleration
+  vk::AccelerationStructureGeometryKHR asGeom;
+  asGeom.setGeometryType(asCreate.geometryType);
+  asGeom.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+  asGeom.geometry.setTriangles(triangles);
+
+  // The primitive itself
+  vk::AccelerationStructureBuildOffsetInfoKHR offset;
+  offset.setFirstVertex(0);
+  offset.setPrimitiveCount(asCreate.maxPrimitiveCount);
+  offset.setPrimitiveOffset(0);
+  offset.setTransformOffset(0);
+
+  // Our blas is only one geometry, but could be made of many geometries
+  nvvk::RaytracingBuilderKHR::Blas blas;
+  blas.asGeometry.emplace_back(asGeom);
+  blas.asCreateGeometryInfo.emplace_back(asCreate);
+  blas.asBuildOffsetInfo.emplace_back(offset);
+
+  return blas;
+}
+
+void HelloTriangleApplication::createBottomLevelAS()
+{
+  // BLAS - Storing each primitive in a geometry
+  std::vector<nvvk::RaytracingBuilderKHR::Blas> allBlas;
+  allBlas.reserve(1);
+  auto blas = objectToVkGeometryKHR();
+
+  // We could add more geometry in each BLAS, but we add only one for now
+  allBlas.emplace_back(blas);
+
+  m_rtBuilder.buildBlas(allBlas, vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
+}
+
+void HelloTriangleApplication::createTopLevelAS()
+{
+  std::vector<nvvk::RaytracingBuilderKHR::Instance> tlas;
+  tlas.reserve(1);
+  //for (int i = 0; i < static_cast<int>(m_objInstance.size()); i++)
+  //{
+    nvvk::RaytracingBuilderKHR::Instance rayInst;
+    rayInst.transform = nvmath::mat4f{};// m_objInstance[i].transform;  // Position of the instance
+    rayInst.instanceId = 0;                           // gl_InstanceID
+    rayInst.blasId = 0;// m_objInstance[i].objIndex;
+    rayInst.hitGroupId = 0;  // We will use the same hit group for all objects
+    rayInst.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+    tlas.emplace_back(rayInst);
+//  }
+  //m_rtBuilder.buildTlas(tlas, vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace);
+
+    VkAccelerationStructureCreateGeometryTypeInfoKHR geometryCreate{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_GEOMETRY_TYPE_INFO_KHR };
+    geometryCreate.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    geometryCreate.maxPrimitiveCount = (static_cast<uint32_t>(tlas.size()));
+    geometryCreate.allowsTransforms = (VK_TRUE);
+
+    VkAccelerationStructureCreateInfoKHR asCreateInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR };
+    asCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+    asCreateInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+    asCreateInfo.maxGeometryCount = 1;
+    asCreateInfo.pGeometryInfos = &geometryCreate;
+
+    // Create the acceleration structure object and allocate the memory
+    // required to hold the TLAS data
+    tlas.as = m_alloc->createAcceleration(asCreateInfo);
+    m_debug.setObjectName(tlas.as.accel, "Tlas");
+
+    // Compute the amount of scratch memory required by the acceleration structure builder
+    VkAccelerationStructureMemoryRequirementsInfoKHR memoryRequirementsInfo{
+        VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_KHR };
+    memoryRequirementsInfo.type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR;
+    memoryRequirementsInfo.accelerationStructure = m_tlas.as.accel;
+    memoryRequirementsInfo.buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR;
+
+    VkMemoryRequirements2 reqMem{ VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2 };
+    vkGetAccelerationStructureMemoryRequirementsKHR(m_device, &memoryRequirementsInfo, &reqMem);
+    VkDeviceSize scratchSize = reqMem.memoryRequirements.size;
+
+
+    // Allocate the scratch memory
+    nvvk::Buffer scratchBuffer =
+      m_alloc->createBuffer(scratchSize, VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+    VkBufferDeviceAddressInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
+    bufferInfo.buffer = scratchBuffer.buffer;
+    VkDeviceAddress scratchAddress = vkGetBufferDeviceAddress(m_device, &bufferInfo);
+
+
+    // For each instance, build the corresponding instance descriptor
+    std::vector<VkAccelerationStructureInstanceKHR> geometryInstances;
+    geometryInstances.reserve(instances.size());
+    for (const auto& inst : instances)
+    {
+      geometryInstances.push_back(instanceToVkGeometryInstanceKHR(inst));
+    }
+
+    // Building the TLAS
+    nvvk::CommandPool genCmdBuf(m_device, m_queueIndex);
+    VkCommandBuffer   cmdBuf = genCmdBuf.createCommandBuffer();
+
+    // Create a buffer holding the actual instance data for use by the AS
+    // builder
+    VkDeviceSize instanceDescsSizeInBytes = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
+
+    // Allocate the instance buffer and copy its contents from host to device
+    // memory
+    m_instBuffer = m_alloc->createBuffer(cmdBuf, geometryInstances,
+      VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+    m_debug.setObjectName(m_instBuffer.buffer, "TLASInstances");
+    //VkBufferDeviceAddressInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
+    bufferInfo.buffer = m_instBuffer.buffer;
+    VkDeviceAddress instanceAddress = vkGetBufferDeviceAddress(m_device, &bufferInfo);
+
+    // Make sure the copy of the instance buffer are copied before triggering the
+    // acceleration structure build
+    VkMemoryBarrier barrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+    vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+      0, 1, &barrier, 0, nullptr, 0, nullptr);
+
+    // Build the TLAS
+    VkAccelerationStructureGeometryDataKHR geometry{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR };
+    geometry.instances.arrayOfPointers = VK_FALSE;
+    geometry.instances.data.deviceAddress = instanceAddress;
+    VkAccelerationStructureGeometryKHR topASGeometry{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
+    topASGeometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    topASGeometry.geometry = geometry;
+
+
+    const VkAccelerationStructureGeometryKHR* pGeometry = &topASGeometry;
+    VkAccelerationStructureBuildGeometryInfoKHR topASInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR };
+    topASInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+    topASInfo.flags = flags;
+    topASInfo.update = VK_FALSE;
+    topASInfo.srcAccelerationStructure = VK_NULL_HANDLE;
+    topASInfo.dstAccelerationStructure = m_tlas.as.accel;
+    topASInfo.geometryArrayOfPointers = VK_FALSE;
+    topASInfo.geometryCount = 1;
+    topASInfo.ppGeometries = &pGeometry;
+    topASInfo.scratchData.deviceAddress = scratchAddress;
+
+    // Build Offsets info: n instances
+    VkAccelerationStructureBuildOffsetInfoKHR        buildOffsetInfo{ static_cast<uint32_t>(instances.size()), 0, 0, 0 };
+    const VkAccelerationStructureBuildOffsetInfoKHR* pBuildOffsetInfo = &buildOffsetInfo;
+
+    // Build the TLAS
+    vkCmdBuildAccelerationStructureKHR(cmdBuf, 1, &topASInfo, &pBuildOffsetInfo);
+
+
+    genCmdBuf.submitAndWait(cmdBuf);
+    m_alloc->finalizeAndReleaseStaging();
+    m_alloc->destroy(scratchBuffer);
 }

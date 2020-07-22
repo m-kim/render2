@@ -3,10 +3,14 @@ set(SOURCE_LIST
     Context.cpp
     HelloTriangleApplication.cpp
     ../nv_shared_sources/nvvk/commands_vk.cpp
+    ../nv_shared_sources/nvvk/context_vk.cpp
     ../nv_shared_sources/nvvk/debug_util_vk.cpp
     ../nv_shared_sources/nvvk/error_vk.cpp
     ../nv_shared_sources/nvvk/extensions_vk.cpp
     ../nv_shared_sources/nvh/nvprint.cpp
+    ../nv_shared_sources/nvvk/commands_vk.cpp           ../nv_shared_sources/nvvk/extensions_vk.cpp      ../nv_shared_sources/nvvk/pipeline_vk.cpp            ../nv_shared_sources/nvvk/swapchain_vk.cpp
+../nv_shared_sources/nvvk/debug_util_vk.cpp         ../nv_shared_sources/nvvk/images_vk.cpp          ../nv_shared_sources/nvvk/renderpasses_vk.cpp
+../nv_shared_sources/nvvk/descriptorsets_vk.cpp ../nv_shared_sources/nvvk/memorymanagement_vk.cpp    ../nv_shared_sources/nvvk/samplers_vk.cpp
         )
 set(HEADER_LIST
 ../include/BufferCreatorBase.h  
@@ -21,6 +25,7 @@ set(HEADER_LIST
 ../include/ModelBase.h                 
 ../include/UniformBufferCreator.h  
 ../include/VikingRoom.h
+../nv_shared_sources/nvvk/allocator_dedicated_vk.hpp
 )
 set(LIBRARY_LIST Vulkan::Vulkan glfw glm::glm)
 

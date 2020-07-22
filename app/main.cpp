@@ -5,6 +5,7 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 int main() {
 
+
   uint32_t extensionCount = 0;
   vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
@@ -36,6 +37,25 @@ int main() {
   app.createDepthResources();
   app.createFramebuffers();
   app.createCommandPool(ctx.m_indices);
+  app.initVulkan();
+  app.createTextureImage();
+  app.createTextureImageView();
+  app.createTextureSampler();
+  app.loadModel();
+  app.createVertexBuffer();
+  app.createIndexBuffer();
+  app.createUniformBuffers();
+  app.createDescriptorPool();
+  if (!ctx.m_indices.graphicsFamily)
+    exit(-1);
+  app.createRayTracing(*ctx.m_indices.graphicsFamily);
+  app.createBottomLevelAS();
+  app.createTopLevelAS();
+
+  app.createDescriptorSets();
+
+  app.createCommandBuffers();
+  app.createSyncObjects();
 
 
   try {

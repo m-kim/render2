@@ -46,14 +46,17 @@ public:
     m_presentQueue = _presentQ;
 
 
+    m_alloc.init(m_device, m_physicalDevice);
+
     //m_queue = m_device.getQueue(m_graphicsQueueIndex, 0);
     //m_cmdPool = m_device.createCommandPool({ vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsQueueIndex });
     //m_pipelineCache = device.createPipelineCache(vk::PipelineCacheCreateInfo());
   }
 
+  void initVulkan();
+
   void run()
   {
-    initVulkan();
     mainLoop();
   }
   void initWindow();
@@ -72,6 +75,19 @@ public:
   void createImageViews();
   void createDescriptorSetLayout();
   void createDepthResources();
+  void createRayTracing(int graphicsQueueIdx);
+  void createUniformBuffers();
+  void createTextureImage();
+  void createTextureImageView();
+  void createTextureSampler();
+  void createDescriptorPool();
+  void createDescriptorSets();
+  void loadModel();
+
+
+  nvvk::RaytracingBuilderKHR::Blas objectToVkGeometryKHR();
+  void createBottomLevelAS();
+  void createTopLevelAS();
 
   void cleanup();
 
@@ -80,7 +96,11 @@ public:
 private:
   VkInstance m_instance;
   VkDebugUtilsMessengerEXT debugMessenger;
-  VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+  vk::PhysicalDevice m_physicalDevice;
+  vk::PhysicalDeviceRayTracingPropertiesKHR  m_rtProperties;
+  nvvk::RaytracingBuilderKHR m_rtBuilder;
+
+  nvvk::AllocatorDedicated m_alloc;  // Allocator for buffer, images, acceleration structures
 
   vk::Device m_device;
 
@@ -151,7 +171,6 @@ private:
 
   std::vector<const char*> getRequiredExtensions();
 
-  void initVulkan();
   
 
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -169,17 +188,11 @@ private:
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-  void createDescriptorPool();
-  void createDescriptorSets();
 
-  void createUniformBuffers();
 
   void updateUniformBuffer(uint32_t currentImage);
 
-  void createTextureImage();
-  void createTextureImageView();
   VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-  void createTextureSampler();
 
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
@@ -191,7 +204,6 @@ private:
 
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-  void loadModel();
 
   void drawFrame();
   VkShaderModule createShaderModule(const std::vector<char>& code);

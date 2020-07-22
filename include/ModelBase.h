@@ -3,6 +3,15 @@
 #include <GLFW/glfw3.h>
 #include "Vertex.h"
 
+// OBJ representation of a vertex
+struct VertexObj
+{
+  glm::vec3 pos;
+  glm::vec3 nrm;
+  glm::vec3 color;
+  glm::vec2 texCoord;
+};
+
 template <class T, class IND_TYPE = uint16_t>
 class ModelBase
 {
